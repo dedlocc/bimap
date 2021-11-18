@@ -64,42 +64,33 @@ private:
     template <typename T>
     struct base_iterator;
 
-    template <typename T>
-    struct key_traits;
+    struct right_key_traits;
 
-    template <>
-    struct key_traits<left_tag>;
-
-    template <>
-    struct key_traits<right_tag>;
-
-    template <>
-    struct key_traits<left_tag>
+    struct left_key_traits
     {
         using value = left_t;
         using node = node_left_t;
-        static constexpr typename node_t::get_left get_key;
+        static constexpr typename node_t::get_left get_key {};
         using set = intrusive::set<node, value, decltype(get_key), left_tag, CompareLeft>;
         using iterator = base_iterator<left_tag>;
-        using flipped = key_traits<right_tag>;
+        using flipped = right_key_traits;
     };
 
-    template <>
-    struct key_traits<right_tag>
+    struct right_key_traits
     {
         using value = right_t;
         using node = node_right_t;
-        static constexpr typename node_t::get_right get_key;
+        static constexpr typename node_t::get_right get_key {};
         using set = intrusive::set<node, value, decltype(get_key), right_tag, CompareRight>;
         using iterator = base_iterator<right_tag>;
-        using flipped = key_traits<left_tag>;
+        using flipped = left_key_traits;
     };
 
     template <typename T>
     struct base_iterator
     {
     private:
-        using traits = key_traits<T>;
+        using traits = std::conditional_t<std::is_same_v<T, left_tag>, left_key_traits, right_key_traits>;
     public:
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
@@ -142,8 +133,8 @@ public:
     using right_iterator = base_iterator<right_tag>;
 
     explicit bimap(CompareLeft compare_left = CompareLeft(), CompareRight compare_right = CompareRight()) :
-        set_left(sentinel, key_traits<left_tag>::get_key, std::move(compare_left)),
-        set_right(sentinel, key_traits<right_tag>::get_key, std::move(compare_right))
+        set_left(sentinel, left_key_traits::get_key, std::move(compare_left)),
+        set_right(sentinel, right_key_traits::get_key, std::move(compare_right))
     {}
 
     bimap(bimap const &other);
@@ -203,8 +194,8 @@ public:
 private:
     mutable node_base_t sentinel;
 
-    typename key_traits<left_tag>::set set_left;
-    typename key_traits<right_tag>::set set_right;
+    typename left_key_traits::set set_left;
+    typename right_key_traits::set set_right;
 
     template <typename L, typename R>
     left_iterator insert_forward(L &&left, R &&right);
