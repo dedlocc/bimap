@@ -43,7 +43,7 @@ private:
             left_t const &operator()(void const *node) const noexcept
             {
                 return static_cast<node_t const *>(static_cast<node_left_t const *>(node))->left;
-            };
+            }
         };
 
         struct get_right
@@ -51,7 +51,7 @@ private:
             right_t const &operator()(void const *node) const noexcept
             {
                 return static_cast<node_t const *>(static_cast<node_right_t const *>(node))->right;
-            };
+            }
         };
 
     private:
