@@ -130,7 +130,7 @@ typename set<T, Key, Tag, Compare>::iterator set<T, Key, Tag, Compare>::link(T &
 template <typename T, typename Key, typename Tag, typename Compare>
 T &set<T, Key, Tag, Compare>::unlink(iterator it) noexcept
 {
-    node_t *x = it.ptr;
+    auto x = const_cast<node_t *>(it.ptr);
     assert(x && *x);
 
     if (x->left && x->right) {

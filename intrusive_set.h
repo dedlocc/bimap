@@ -65,7 +65,7 @@ struct set
         bool operator!=(iterator other) const noexcept;
 
     private:
-        node_t *ptr {};
+        node_t const *ptr {};
 
         friend struct set;
     };
@@ -98,7 +98,7 @@ struct set
     Compare key_comp() const noexcept;
 
 private:
-    mutable node_t *sentinel;
+    node_t *sentinel;
     std::size_t sz;
 
     [[no_unique_address]] Compare compare;

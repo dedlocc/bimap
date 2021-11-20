@@ -183,7 +183,7 @@ public:
 
 private:
     struct sentinel_t : left_key_traits::base_node, right_key_traits::base_node
-    {} mutable sentinel;
+    {} sentinel;
 
     typename left_key_traits::set left_set;
     typename right_key_traits::set right_set;
