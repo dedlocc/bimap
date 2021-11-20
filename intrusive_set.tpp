@@ -84,7 +84,6 @@ bool set<T, Key, GetKey, Tag, Compare>::iterator::operator!=(iterator other) con
 
 template <typename T, typename Key, typename GetKey, typename Tag, typename Compare>
 set<T, Key, GetKey, Tag, Compare>::set(set &&other) noexcept :
-    root(std::exchange(other.root, nullptr)),
     sentinel(std::exchange(other.root, nullptr)),
     sz(std::exchange(other.sz, 0)),
     compare(std::move(other.compare)),
@@ -94,7 +93,6 @@ set<T, Key, GetKey, Tag, Compare>::set(set &&other) noexcept :
 template <typename T, typename Key, typename GetKey, typename Tag, typename Compare>
 set<T, Key, GetKey, Tag, Compare> &set<T, Key, GetKey, Tag, Compare>::operator=(set &&other) noexcept
 {
-    std::swap(root, other.root);
     std::swap(sentinel, other.root);
     std::swap(sz, other.sz);
     std::swap(compare, other.compare);
@@ -106,9 +104,9 @@ template <typename T, typename Key, typename GetKey, typename Tag, typename Comp
 typename set<T, Key, GetKey, Tag, Compare>::iterator set<T, Key, GetKey, Tag, Compare>::link(T &e) noexcept
 {
     node_t *p = sentinel;
-    node_t **x_ptr = &root;
+    node_t **x_ptr = &sentinel->left;
 
-    for (node_t *x = root; x; x = *x_ptr) {
+    for (node_t *x = *x_ptr; x; x = *x_ptr) {
         p = x;
         if (auto &k1 = get_key(&e), &k2 = get_key(x); compare(k1, k2)) {
             x_ptr = &x->left;
@@ -120,8 +118,7 @@ typename set<T, Key, GetKey, Tag, Compare>::iterator set<T, Key, GetKey, Tag, Co
     }
 
     if (p == sentinel) {
-        root = &e;
-        sentinel->left = root;
+        sentinel->left = &e;
     } else {
         *x_ptr = &e;
     }
@@ -163,7 +160,7 @@ T &set<T, Key, GetKey, Tag, Compare>::unlink(iterator it) noexcept
 template <typename T, typename Key, typename GetKey, typename Tag, typename Compare>
 typename set<T, Key, GetKey, Tag, Compare>::iterator set<T, Key, GetKey, Tag, Compare>::lower_bound(Key const &key) const noexcept
 {
-    return iterator(lower_bound(key, root));
+    return iterator(lower_bound(key, sentinel->left));
 }
 
 template <typename T, typename Key, typename GetKey, typename Tag, typename Compare>
@@ -204,7 +201,7 @@ typename set<T, Key, GetKey, Tag, Compare>::iterator set<T, Key, GetKey, Tag, Co
     if (empty()) {
         return iterator(sentinel);
     }
-    node_t *x = root;
+    node_t *x = sentinel;
     while (x->left) {
         x = x->left;
     }
@@ -272,7 +269,7 @@ void set<T, Key, GetKey, Tag, Compare>::replace(node_t const *old_child, node_t 
     node_t *p = old_child->parent;
     assert(p);
     if (p == sentinel) {
-        sentinel->left = root = new_child;
+        sentinel->left = new_child;
     } else if (old_child == p->left) {
         p->left = new_child;
     } else {

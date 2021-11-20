@@ -69,7 +69,6 @@ struct set
     };
 
     explicit set(node_t &sentinel, GetKey get_key = GetKey(), Compare compare = Compare()) :
-        root(nullptr),
         sentinel(&sentinel),
         sz(0),
         get_key(get_key),
@@ -98,7 +97,6 @@ struct set
     Compare key_comp() const noexcept;
 
 private:
-    mutable node_t *root;
     mutable node_t *sentinel;
     std::size_t sz;
 
