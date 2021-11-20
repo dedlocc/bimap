@@ -17,9 +17,9 @@ struct node
     node(node const &) = delete;
     node &operator=(node const &) = delete;
 
-    explicit operator bool() const noexcept
+    bool is_sentinel() const noexcept
     {
-        return parent;
+        return !parent;
     }
 
 private:

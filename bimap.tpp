@@ -69,11 +69,11 @@ typename bimap<L, R, CL, CR>::template base_iterator<T>::flipped_iterator bimap<
     auto &node = *it;
     using flipped_node_t = typename traits::flipped::base_node const &;
 
-    if (node) {
-        return flipped_iterator(static_cast<flipped_node_t>(static_cast<node_t const &>(node)));
+    if (node.is_sentinel()) {
+        return flipped_iterator(static_cast<flipped_node_t>(static_cast<sentinel_t const &>(node)));
     }
 
-    return flipped_iterator(static_cast<flipped_node_t>(static_cast<sentinel_t const &>(node)));
+    return flipped_iterator(static_cast<flipped_node_t>(static_cast<node_t const &>(node)));
 }
 
 template <typename L, typename R, typename CL, typename CR>

@@ -115,7 +115,7 @@ typename set<T, Key, Tag, Compare>::iterator set<T, Key, Tag, Compare>::link(T &
         }
     }
 
-    if (!*p) {
+    if (p->is_sentinel()) {
         sentinel->left = &e;
     } else {
         *x_ptr = &e;
@@ -131,7 +131,7 @@ template <typename T, typename Key, typename Tag, typename Compare>
 T &set<T, Key, Tag, Compare>::unlink(iterator it) noexcept
 {
     auto x = const_cast<node_t *>(it.ptr);
-    assert(x && *x);
+    assert(x && !x->is_sentinel());
 
     if (x->left && x->right) {
         node_t *y = x->right;
@@ -254,8 +254,8 @@ template <typename T, typename Key, typename Tag, typename Compare>
 void set<T, Key, Tag, Compare>::splay(node_t *x) const noexcept
 {
     assert(x);
-    while (*x->parent) {
-        if (*x->parent->parent) {
+    while (!x->parent->is_sentinel()) {
+        if (!x->parent->parent->is_sentinel()) {
             if ((x == x->parent->left) == (x->parent == x->parent->parent->left)) {
                 rotate(x->parent);
             } else {
@@ -272,7 +272,7 @@ void set<T, Key, Tag, Compare>::replace(node_t const *old_child, node_t *new_chi
     assert(old_child);
     node_t *p = old_child->parent;
     assert(p);
-    if (!*p) {
+    if (p->is_sentinel()) {
         sentinel->left = new_child;
     } else if (old_child == p->left) {
         p->left = new_child;
@@ -295,7 +295,7 @@ typename set<T, Key, Tag, Compare>::node_t *set<T, Key, Tag, Compare>::lower_bou
         return lower_bound(key, x->right);
     }
     if (compare(key, get_key(x))) {
-        if (auto lb = lower_bound(key, x->left); *lb) {
+        if (auto lb = lower_bound(key, x->left); !lb->is_sentinel()) {
             return lb;
         }
     }
