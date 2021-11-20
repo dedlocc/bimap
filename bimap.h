@@ -28,12 +28,12 @@ private:
     struct base_iterator;
 
     template <typename T>
-    struct node_with_key
+    struct key_storage
     {
-        explicit node_with_key(T const &key) : key(key)
+        explicit key_storage(T const &key) : key(key)
         {}
 
-        explicit node_with_key(T &&key) : key(std::move(key))
+        explicit key_storage(T &&key) : key(std::move(key))
         {}
 
         T key;
@@ -45,9 +45,9 @@ private:
     {
         using value = left_t;
         using base_node = intrusive::node<left_tag>;
-        struct node : base_node, node_with_key<value>
+        struct node : base_node, key_storage<value>
         {
-            using node_with_key<value>::node_with_key;
+            using key_storage<value>::key_storage;
         };
         using set = intrusive::set<node, value, left_tag, CompareLeft>;
         using iterator = base_iterator<left_tag>;
@@ -58,9 +58,9 @@ private:
     {
         using value = right_t;
         using base_node = intrusive::node<right_tag>;
-        struct node : base_node, node_with_key<value>
+        struct node : base_node, key_storage<value>
         {
-            using node_with_key<value>::node_with_key;
+            using key_storage<value>::key_storage;
         };
         using set = intrusive::set<node, value, right_tag, CompareRight>;
         using iterator = base_iterator<right_tag>;
