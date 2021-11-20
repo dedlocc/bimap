@@ -4,14 +4,14 @@ template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag>::reference bimap<L, R, CL, CR>::base_iterator<Tag>::operator*() const noexcept
 {
-    return traits::get_key(&*it);
+    return static_cast<typename traits::node const &>(*it).key;
 }
 
 template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag>::pointer bimap<L, R, CL, CR>::base_iterator<Tag>::operator->() const noexcept
 {
-    return &traits::get_key(&*it);
+    return &this->operator*();
 }
 
 template <typename L, typename R, typename CL, typename CR>
@@ -66,7 +66,14 @@ template <typename L, typename R, typename CL, typename CR>
 template <typename T>
 typename bimap<L, R, CL, CR>::template base_iterator<T>::flipped_iterator bimap<L, R, CL, CR>::base_iterator<T>::flip() const noexcept
 {
-    return flipped_iterator(static_cast<typename traits::flipped::node const &>(static_cast<node_base_t const &>(*it)));
+    auto &node = *it;
+    using flipped_node_t = typename traits::flipped::base_node const &;
+
+    if (node) {
+        return flipped_iterator(static_cast<flipped_node_t>(static_cast<node_t const &>(node)));
+    }
+
+    return flipped_iterator(static_cast<flipped_node_t>(static_cast<sentinel_t const &>(node)));
 }
 
 template <typename L, typename R, typename CL, typename CR>
@@ -240,10 +247,10 @@ typename bimap<L, R, CL, CR>::right_t const &bimap<L, R, CL, CR>::at_left_or_def
     right_t r {};
     auto it_right = find_right(r);
     if (it_right != end_right()) {
-        auto node = &static_cast<node_t &>(right_set.unlink(it_right.it));
-        node->left = key;
-        right_set.link(*node);
-        return node->right;
+        auto &node = right_set.unlink(it_right.it);
+        static_cast<typename left_key_traits::node &>(static_cast<node_t &>(node)).key = key;
+        right_set.link(node);
+        return node.key;
     }
 
     return *insert(key, std::move(r)).flip();
@@ -261,10 +268,10 @@ typename bimap<L, R, CL, CR>::left_t const &bimap<L, R, CL, CR>::at_right_or_def
     left_t l {};
     auto it_left = find_left(l);
     if (it_left != end_left()) {
-        auto node = &static_cast<node_t &>(left_set.unlink(it_left.it));
-        node->right = key;
-        left_set.link(*node);
-        return node->left;
+        auto &node = left_set.unlink(it_left.it);
+        static_cast<typename right_key_traits::node &>(static_cast<node_t &>(node)).key = key;
+        left_set.link(node);
+        return node.key;
     }
 
     return *insert(std::move(l), key);

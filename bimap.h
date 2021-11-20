@@ -24,54 +24,32 @@ private:
     struct left_tag;
     struct right_tag;
 
-    using node_left_t = intrusive::node<left_tag>;
-    using node_right_t = intrusive::node<right_tag>;
-
-    struct node_base_t : node_left_t, node_right_t
-    {};
-
-    struct node_t : node_base_t
-    {
-        template <typename L, typename R>
-        node_t(L &&left, R &&right) :
-            left(std::forward<L>(left)),
-            right(std::forward<R>(right))
-        {}
-
-        struct get_left
-        {
-            left_t const &operator()(void const *node) const noexcept
-            {
-                return static_cast<node_t const *>(static_cast<node_left_t const *>(node))->left;
-            }
-        };
-
-        struct get_right
-        {
-            right_t const &operator()(void const *node) const noexcept
-            {
-                return static_cast<node_t const *>(static_cast<node_right_t const *>(node))->right;
-            }
-        };
-
-    private:
-        left_t left;
-        right_t right;
-
-        friend struct bimap;
-    };
-
     template <typename T>
     struct base_iterator;
+
+    template <typename T>
+    struct node_with_key
+    {
+        explicit node_with_key(T const &key) : key(key)
+        {}
+
+        explicit node_with_key(T &&key) : key(std::move(key))
+        {}
+
+        T key;
+    };
 
     struct right_key_traits;
 
     struct left_key_traits
     {
         using value = left_t;
-        using node = node_left_t;
-        static constexpr typename node_t::get_left get_key {};
-        using set = intrusive::set<node, value, decltype(get_key), left_tag, CompareLeft>;
+        using base_node = intrusive::node<left_tag>;
+        struct node : base_node, node_with_key<value>
+        {
+            using node_with_key<value>::node_with_key;
+        };
+        using set = intrusive::set<node, value, left_tag, CompareLeft>;
         using iterator = base_iterator<left_tag>;
         using flipped = right_key_traits;
     };
@@ -79,9 +57,12 @@ private:
     struct right_key_traits
     {
         using value = right_t;
-        using node = node_right_t;
-        static constexpr typename node_t::get_right get_key {};
-        using set = intrusive::set<node, value, decltype(get_key), right_tag, CompareRight>;
+        using base_node = intrusive::node<right_tag>;
+        struct node : base_node, node_with_key<value>
+        {
+            using node_with_key<value>::node_with_key;
+        };
+        using set = intrusive::set<node, value, right_tag, CompareRight>;
         using iterator = base_iterator<right_tag>;
         using flipped = left_key_traits;
     };
@@ -121,20 +102,29 @@ private:
         base_iterator(typename traits::set::iterator it) : it(it)
         {}
 
-        explicit base_iterator(typename traits::node const &node) : it(const_cast<typename traits::node *>(&node))
+        explicit base_iterator(typename traits::base_node const &node) : it(const_cast<typename traits::base_node *>(&node))
         {}
 
         friend struct bimap;
         friend flipped_iterator;
     };
 
+    struct node_t : left_key_traits::node, right_key_traits::node
+    {
+        template <typename L, typename R>
+        node_t(L &&left, R &&right) :
+            left_key_traits::node(std::forward<L>(left)),
+            right_key_traits::node(std::forward<R>(right))
+        {}
+    };
+
 public:
-    using left_iterator  = base_iterator<left_tag>;
-    using right_iterator = base_iterator<right_tag>;
+    using left_iterator = typename left_key_traits::iterator;
+    using right_iterator = typename right_key_traits::iterator;
 
     explicit bimap(CompareLeft compare_left = CompareLeft(), CompareRight compare_right = CompareRight()) :
-        left_set(sentinel, left_key_traits::get_key, std::move(compare_left)),
-        right_set(sentinel, right_key_traits::get_key, std::move(compare_right))
+        left_set(sentinel, std::move(compare_left)),
+        right_set(sentinel, std::move(compare_right))
     {}
 
     bimap(bimap const &other);
@@ -192,7 +182,8 @@ public:
     friend bool operator!=<>(bimap const &a, bimap const &b) noexcept;
 
 private:
-    mutable node_base_t sentinel;
+    struct sentinel_t : left_key_traits::base_node, right_key_traits::base_node
+    {} mutable sentinel;
 
     typename left_key_traits::set left_set;
     typename right_key_traits::set right_set;

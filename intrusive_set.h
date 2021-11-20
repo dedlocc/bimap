@@ -6,7 +6,7 @@
 namespace intrusive {
 struct default_tag;
 
-template <typename T, typename Key, typename GetKey, typename Tag, typename Compare>
+template <typename T, typename Key, typename Tag, typename Compare>
 struct set;
 
 template <typename Tag = default_tag>
@@ -15,21 +15,23 @@ struct node
     node() = default;
 
     node(node const &) = delete;
-    node(node &&) = delete;
-
     node &operator=(node const &) = delete;
-    node &operator=(node &&) = delete;
+
+    explicit operator bool() const noexcept
+    {
+        return parent;
+    }
 
 private:
     node *left {};
     node *right {};
     node *parent {};
 
-    template <typename T, typename SKey, typename SGetKey, typename STag, typename SCompare>
+    template <typename T, typename SKey, typename STag, typename SCompare>
     friend struct set;
 };
 
-template <typename T, typename Key, typename GetKey, typename Tag = default_tag, typename Compare = std::less<Key>>
+template <typename T, typename Key, typename Tag = default_tag, typename Compare = std::less<Key>>
 struct set
 {
     using node_t = node<Tag>;
@@ -40,9 +42,9 @@ struct set
     {
         using iterator_category = std::bidirectional_iterator_tag;
         using difference_type = std::ptrdiff_t;
-        using value_type = T;
-        using pointer = T const *;
-        using reference = T const &;
+        using value_type = node_t;
+        using pointer = node_t const *;
+        using reference = node_t const &;
 
         iterator() = default;
 
@@ -68,10 +70,9 @@ struct set
         friend struct set;
     };
 
-    explicit set(node_t &sentinel, GetKey get_key = GetKey(), Compare compare = Compare()) :
+    explicit set(node_t &sentinel, Compare compare = Compare()) :
         sentinel(&sentinel),
         sz(0),
-        get_key(get_key),
         compare(std::move(compare))
     {}
 
@@ -100,9 +101,9 @@ private:
     mutable node_t *sentinel;
     std::size_t sz;
 
-    [[no_unique_address]] GetKey get_key;
     [[no_unique_address]] Compare compare;
 
+    Key const &get_key(node_t const *) const noexcept;
     void rotate(node_t *y) const noexcept;
     void splay(node_t *x) const noexcept;
     void replace(node_t const *old_child, node_t *new_child) const noexcept;
