@@ -97,12 +97,12 @@ private:
         flipped_iterator flip() const noexcept;
 
     private:
-        typename traits::set::iterator it;
+        typename traits::set::iterator set_it;
 
-        base_iterator(typename traits::set::iterator it) : it(it)
+        base_iterator(typename traits::set::iterator it) : set_it(it)
         {}
 
-        explicit base_iterator(typename traits::base_node const &node) : it(const_cast<typename traits::base_node *>(&node))
+        explicit base_iterator(typename traits::base_node const &node) : set_it(const_cast<typename traits::base_node *>(&node))
         {}
 
         friend struct bimap;

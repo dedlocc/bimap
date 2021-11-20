@@ -4,7 +4,7 @@ template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag>::reference bimap<L, R, CL, CR>::base_iterator<Tag>::operator*() const noexcept
 {
-    return static_cast<typename traits::node const &>(*it).key;
+    return static_cast<typename traits::node const &>(*set_it).key;
 }
 
 template <typename L, typename R, typename CL, typename CR>
@@ -18,7 +18,7 @@ template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag> &bimap<L, R, CL, CR>::base_iterator<Tag>::operator++() noexcept
 {
-    ++it;
+    ++set_it;
     return *this;
 }
 
@@ -27,7 +27,7 @@ template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag> bimap<L, R, CL, CR>::base_iterator<Tag>::operator++(int) & noexcept
 {
     auto res = *this;
-    ++it;
+    ++set_it;
     return res;
 }
 
@@ -35,7 +35,7 @@ template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag> &bimap<L, R, CL, CR>::base_iterator<Tag>::operator--() noexcept
 {
-    --it;
+    --set_it;
     return *this;
 }
 
@@ -44,7 +44,7 @@ template <typename Tag>
 typename bimap<L, R, CL, CR>::template base_iterator<Tag> bimap<L, R, CL, CR>::base_iterator<Tag>::operator--(int) & noexcept
 {
     auto res = *this;
-    --it;
+    --set_it;
     return res;
 }
 
@@ -52,21 +52,21 @@ template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 bool bimap<L, R, CL, CR>::base_iterator<Tag>::operator==(base_iterator other) const noexcept
 {
-    return it == other.it;
+    return set_it == other.set_it;
 }
 
 template <typename L, typename R, typename CL, typename CR>
 template <typename Tag>
 bool bimap<L, R, CL, CR>::base_iterator<Tag>::operator!=(base_iterator other) const noexcept
 {
-    return it != other.it;
+    return set_it != other.set_it;
 }
 
 template <typename L, typename R, typename CL, typename CR>
 template <typename T>
 typename bimap<L, R, CL, CR>::template base_iterator<T>::flipped_iterator bimap<L, R, CL, CR>::base_iterator<T>::flip() const noexcept
 {
-    auto &node = *it;
+    auto &node = *set_it;
     using flipped_node_t = typename traits::flipped::base_node const &;
 
     if (node.is_sentinel()) {
@@ -155,8 +155,8 @@ template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::erase_left(left_iterator it)
 {
     auto old_it = it++;
-    auto *ptr = static_cast<node_t *>(&left_set.unlink(old_it.it));
-    right_set.unlink(old_it.flip().it);
+    auto *ptr = static_cast<node_t *>(&left_set.unlink(old_it.set_it));
+    right_set.unlink(old_it.flip().set_it);
     delete ptr;
     return it;
 }
@@ -247,7 +247,7 @@ typename bimap<L, R, CL, CR>::right_t const &bimap<L, R, CL, CR>::at_left_or_def
     right_t r {};
     auto it_right = find_right(r);
     if (it_right != end_right()) {
-        auto &node = right_set.unlink(it_right.it);
+        auto &node = right_set.unlink(it_right.set_it);
         static_cast<typename left_key_traits::node &>(static_cast<node_t &>(node)).key = key;
         right_set.link(node);
         return node.key;
@@ -268,7 +268,7 @@ typename bimap<L, R, CL, CR>::left_t const &bimap<L, R, CL, CR>::at_right_or_def
     left_t l {};
     auto it_left = find_left(l);
     if (it_left != end_left()) {
-        auto &node = left_set.unlink(it_left.it);
+        auto &node = left_set.unlink(it_left.set_it);
         static_cast<typename right_key_traits::node &>(static_cast<node_t &>(node)).key = key;
         left_set.link(node);
         return node.key;
