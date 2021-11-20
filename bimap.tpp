@@ -70,7 +70,7 @@ typename bimap<L, R, CL, CR>::template base_iterator<T>::flipped_iterator bimap<
 }
 
 template <typename L, typename R, typename CL, typename CR>
-bimap<L, R, CL, CR>::bimap(bimap const &other) : bimap(other.set_left.key_comp(), other.set_right.key_comp())
+bimap<L, R, CL, CR>::bimap(bimap const &other) : bimap(other.left_set.key_comp(), other.right_set.key_comp())
 {
     auto const end = other.end_left();
     for (auto it = other.begin_left(); it != end; ++it) {
@@ -138,8 +138,8 @@ typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::insert_forward(
     }
 
     auto &node = *new node_t(std::forward<Left>(left), std::forward<Right>(right));
-    set_left.link(node);
-    set_right.link(node);
+    left_set.link(node);
+    right_set.link(node);
 
     return left_iterator(node);
 }
@@ -148,8 +148,8 @@ template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::erase_left(left_iterator it)
 {
     auto old_it = it++;
-    auto *ptr = static_cast<node_t *>(&set_left.unlink(old_it.it));
-    set_right.unlink(old_it.flip().it);
+    auto *ptr = static_cast<node_t *>(&left_set.unlink(old_it.it));
+    right_set.unlink(old_it.flip().it);
     delete ptr;
     return it;
 }
@@ -201,13 +201,13 @@ typename bimap<L, R, CL, CR>::right_iterator bimap<L, R, CL, CR>::erase_right(ri
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::find_left(left_t const &left) const noexcept
 {
-    return set_left.find(left);
+    return left_set.find(left);
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::right_iterator bimap<L, R, CL, CR>::find_right(right_t const &right) const noexcept
 {
-    return set_right.find(right);
+    return right_set.find(right);
 }
 
 template <typename L, typename R, typename CL, typename CR>
@@ -240,9 +240,9 @@ typename bimap<L, R, CL, CR>::right_t const &bimap<L, R, CL, CR>::at_left_or_def
     right_t r {};
     auto it_right = find_right(r);
     if (it_right != end_right()) {
-        auto node = &static_cast<node_t &>(set_right.unlink(it_right.it));
+        auto node = &static_cast<node_t &>(right_set.unlink(it_right.it));
         node->left = key;
-        set_right.link(*node);
+        right_set.link(*node);
         return node->right;
     }
 
@@ -261,9 +261,9 @@ typename bimap<L, R, CL, CR>::left_t const &bimap<L, R, CL, CR>::at_right_or_def
     left_t l {};
     auto it_left = find_left(l);
     if (it_left != end_left()) {
-        auto node = &static_cast<node_t &>(set_left.unlink(it_left.it));
+        auto node = &static_cast<node_t &>(left_set.unlink(it_left.it));
         node->right = key;
-        set_left.link(*node);
+        left_set.link(*node);
         return node->left;
     }
 
@@ -273,61 +273,61 @@ typename bimap<L, R, CL, CR>::left_t const &bimap<L, R, CL, CR>::at_right_or_def
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::lower_bound_left(left_t const &left) const noexcept
 {
-    return set_left.lower_bound(left);
+    return left_set.lower_bound(left);
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::upper_bound_left(left_t const &left) const noexcept
 {
-    return set_left.upper_bound(left);
+    return left_set.upper_bound(left);
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::right_iterator bimap<L, R, CL, CR>::lower_bound_right(right_t const &right) const noexcept
 {
-    return set_right.lower_bound(right);
+    return right_set.lower_bound(right);
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::right_iterator bimap<L, R, CL, CR>::upper_bound_right(right_t const &right) const noexcept
 {
-    return set_right.upper_bound(right);
+    return right_set.upper_bound(right);
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::begin_left() const noexcept
 {
-    return set_left.begin();
+    return left_set.begin();
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::left_iterator bimap<L, R, CL, CR>::end_left() const noexcept
 {
-    return set_left.end();
+    return left_set.end();
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::right_iterator bimap<L, R, CL, CR>::begin_right() const noexcept
 {
-    return set_right.begin();
+    return right_set.begin();
 }
 
 template <typename L, typename R, typename CL, typename CR>
 typename bimap<L, R, CL, CR>::right_iterator bimap<L, R, CL, CR>::end_right() const noexcept
 {
-    return set_right.end();
+    return right_set.end();
 }
 
 template <typename L, typename R, typename CL, typename CR>
 bool bimap<L, R, CL, CR>::empty() const noexcept
 {
-    return set_left.empty();
+    return left_set.empty();
 }
 
 template <typename L, typename R, typename CL, typename CR>
 std::size_t bimap<L, R, CL, CR>::size() const noexcept
 {
-    return set_left.size();
+    return left_set.size();
 }
 
 template <typename L, typename R, typename CL, typename CR>
@@ -345,8 +345,8 @@ bool operator==(bimap<L, R, CL, CR> const &a, bimap<L, R, CL, CR> const &b) noex
         auto &b_l = *b_it;
         auto &a_r = *a_it.flip();
         auto &b_r = *b_it.flip();
-        auto comp_left = a.set_left.key_comp();
-        auto comp_right = a.set_right.key_comp();
+        auto comp_left = a.left_set.key_comp();
+        auto comp_right = a.right_set.key_comp();
 
         if (comp_left(a_l, b_l) || comp_left(b_l, a_l) || comp_right(a_r, b_r) || comp_right(b_r, a_r)) {
             return false;

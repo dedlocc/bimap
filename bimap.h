@@ -133,8 +133,8 @@ public:
     using right_iterator = base_iterator<right_tag>;
 
     explicit bimap(CompareLeft compare_left = CompareLeft(), CompareRight compare_right = CompareRight()) :
-        set_left(sentinel, left_key_traits::get_key, std::move(compare_left)),
-        set_right(sentinel, right_key_traits::get_key, std::move(compare_right))
+        left_set(sentinel, left_key_traits::get_key, std::move(compare_left)),
+        right_set(sentinel, right_key_traits::get_key, std::move(compare_right))
     {}
 
     bimap(bimap const &other);
@@ -194,8 +194,8 @@ public:
 private:
     mutable node_base_t sentinel;
 
-    typename left_key_traits::set set_left;
-    typename right_key_traits::set set_right;
+    typename left_key_traits::set left_set;
+    typename right_key_traits::set right_set;
 
     template <typename L, typename R>
     left_iterator insert_forward(L &&left, R &&right);
