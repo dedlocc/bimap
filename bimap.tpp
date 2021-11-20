@@ -344,10 +344,9 @@ bool operator==(bimap<L, R, CL, CR> const &a, bimap<L, R, CL, CR> const &b) noex
         return false;
     }
 
-    auto a_it = a.begin_left();
-    auto b_it = b.begin_left();
+    auto const a_end = a.end_left();
 
-    for (auto const a_end = a.end_left(); a_it != a_end; ++a_it, ++b_it) {
+    for (auto a_it = a.begin_left(), b_it = b.begin_left(); a_it != a_end; ++a_it, ++b_it) {
         auto &a_l = *a_it;
         auto &b_l = *b_it;
         auto &a_r = *a_it.flip();
